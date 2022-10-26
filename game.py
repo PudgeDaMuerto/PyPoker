@@ -1,5 +1,6 @@
 from gui import *
 
-table_cards_labels[0]['image'] = table_cards['10 of hearts']
+gui = GUI()
 
-start_mainloop()
+gui.set_table_cards('10 of hearts', places=(0,))
+gui.start_mainloop()

@@ -21,7 +21,7 @@ class GUI:
         self.table_cards = create_imgs(5.5)
         self.hand_cards = create_imgs(10)
 
-        # Create labels for players and place they
+        # Create labels for players and place them
         self.player_labels = [Label(self.window, text=f"Player {i + 1}") for i in range(5)]
 
         self.player_labels[0].place(x=GUI.SIZE_X - 350, y=20, anchor="e")
@@ -32,18 +32,27 @@ class GUI:
 
         self.player_labels[2].configure(text="YOU")
 
+        # Create money label
         self.your_money_label = Label(self.window, text="Your money:")
         self.your_money_label.place(x=20, y=GUI.SIZE_Y - 10, anchor='sw')
         self.money_label = Label(self.window, text="5000")
         self.money_label.place(x=100, y=GUI.SIZE_Y - 10, anchor='sw')
 
+        # Create combination label
         self.combination_label = Label(self.window, text="High Card")
         self.combination_label.place(x=300, y=GUI.SIZE_Y - 10, anchor='sw')
 
-        self.btn_check = Button(text="Check", width=10, height=2, bg=GUI.BLUE, state='disabled')
-        self.btn_call = Button(text="Call", width=10, height=2, bg=GUI.GREEN, state='disabled')
-        self.btn_fold = Button(text="Fold", width=10, height=2, bg='red', state='disabled')
-        self.btn_bet = Button(text="Bet", width=10, height=2, bg='yellow', state='disabled')
+        # Create bank label and place it
+        self.bank_label = Label(self.window, text='Bank', width=10)
+        self.bank_label.place(x=GUI.SIZE_X/2, y=200, anchor='n')
+        self.bank_sum_label = Label(self.window, text='0', width=10)
+        self.bank_sum_label.place(x=GUI.SIZE_X/2, y=225, anchor='n')
+
+        # Create and place buttons for player
+        self.btn_check = Button(text="Check", width=10, height=2, bg=GUI.BLUE)
+        self.btn_call = Button(text="Call", width=10, height=2, bg=GUI.GREEN)
+        self.btn_fold = Button(text="Fold", width=10, height=2, bg='red')
+        self.btn_bet = Button(text="Bet", width=10, height=2, bg='yellow')
 
         self.btn_fold.place(x=GUI.SIZE_X / 2 - 200, y=GUI.SIZE_Y - 170)
         self.btn_check.place(x=GUI.SIZE_X / 2 - 110, y=GUI.SIZE_Y - 170)
@@ -53,7 +62,7 @@ class GUI:
         self.bet_text = Entry(self.window, width=13)
         self.bet_text.place(x=GUI.SIZE_X / 2 + 70, y=GUI.SIZE_Y - 125)
 
-        # Create labels for cards on table and place they
+        # Create labels for cards on table and place them
         self.table_cards_labels = [Label(self.window, image=self.table_cards['14 of spades'], bg='green') for _ in range(5)]
 
         self.table_cards_labels[0].place(y=GUI.SIZE_Y / 2, x=GUI.SIZE_X / 2 - 200, anchor='center')
@@ -62,6 +71,7 @@ class GUI:
         self.table_cards_labels[3].place(y=GUI.SIZE_Y / 2, x=GUI.SIZE_X / 2 + 100, anchor='center')
         self.table_cards_labels[4].place(y=GUI.SIZE_Y / 2, x=GUI.SIZE_X / 2 + 200, anchor='center')
 
+        # Create players hands, placing them, and save in list
         self.players_cards = list()
         self.hand_cards_labels = [Label(self.window, image=self.hand_cards['2 of spades'], bg='green') for _ in range(10)]
 
@@ -91,14 +101,35 @@ class GUI:
     def start_mainloop(self):
         self.window.mainloop()
 
+    def hide_all_widgets(self):
+        hide_widgets(self.btn_bet, self.bet_text, self.btn_call, self.btn_check, self.btn_fold)
+
+    def show_all_widgets(self):
+        show_widgets(self.btn_bet, self.bet_text, self.btn_call, self.btn_check, self.btn_fold)
+
+    def hide_player_hand(self, player):
+        hide_widgets(*self.players_cards[player])
+
+    def show_player_hand(self, player):
+        show_widgets(*self.players_cards[player])
+
+    def set_table_cards(self, *cards: str, places: tuple):
+        assert len(cards) == len(places), "Not enough places or cards!"
+        for place, card in zip(places, cards):
+             self.table_cards_labels[place]['image'] = self.table_cards[card]
+
+    def clear_table(self):
+        for card in self.table_cards_labels:
+            card['image'] = ''
+
 
 def hide_widgets(*buttons: tkinter.Widget):
     for button in buttons:
         old_place = button.place_info()
-        button.place_configure(x=int(old_place['x']) + 1000)
+        button.place_configure(x=int(old_place['x']) + 10000)
 
 
 def show_widgets(*buttons: tkinter.Widget):
     for button in buttons:
         old_place = button.place_info()
-        button.place_configure(x=int(old_place['x']) - 1000)
+        button.place_configure(x=int(old_place['x']) - 10000)
