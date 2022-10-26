@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import random
 from enum import Enum
 
+START_MONEY = 1000
+
 
 class Rank(Enum):
     ROYAL_FLUSH = 1
@@ -116,6 +118,7 @@ class Player(Table):
         super().__init__()
         self.name = name
         self.rank = (None, None)
+        self.money = START_MONEY
 
     @staticmethod
     def combination(all_cards: list[Card]):
@@ -259,6 +262,9 @@ class Player(Table):
         self.rank = self.combination(cards_pool)
 
 
+# TODO: class Queue for players
+
+
 player = Player("Maxim")
 table = Table()
 
@@ -276,7 +282,7 @@ while flag is True:
 
     player.hand_rank(table)
 
-    if player.rank[0] == Rank.FULL_HOUSE:
+    if player.rank[0] == Rank.PAIR:
         flag = False
 
     k += 1

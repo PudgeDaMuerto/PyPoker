@@ -9,6 +9,7 @@ class GUI:
     FRAME_SIZE = 80
     BLUE = '#33FFFF'
     GREEN = '#00FF00'
+    YOUR_PLAYER = 2
 
     def __init__(self):
         self.window = Tk()
@@ -30,12 +31,12 @@ class GUI:
         self.player_labels[3].place(x=20, y=350)
         self.player_labels[4].place(x=350, y=20)
 
-        self.player_labels[2].configure(text="YOU")
+        self.player_labels[GUI.YOUR_PLAYER].configure(text="YOU")
 
         # Create money label
         self.your_money_label = Label(self.window, text="Your money:")
         self.your_money_label.place(x=20, y=GUI.SIZE_Y - 10, anchor='sw')
-        self.money_label = Label(self.window, text="5000")
+        self.money_label = Label(self.window, text="1000")
         self.money_label.place(x=100, y=GUI.SIZE_Y - 10, anchor='sw')
 
         # Create combination label
