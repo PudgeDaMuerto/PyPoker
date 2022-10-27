@@ -10,6 +10,7 @@ class GUI:
     BLUE = '#33FFFF'
     GREEN = '#00FF00'
     YOUR_PLAYER = 2
+    MESSAGE_SECONDS = 3
 
     def __init__(self):
         self.window = Tk()
@@ -27,11 +28,19 @@ class GUI:
 
         self.player_labels[0].place(x=GUI.SIZE_X - 350, y=20, anchor="e")
         self.player_labels[1].place(x=GUI.SIZE_X - 20, y=350, anchor="e")
-        self.player_labels[2].place(x=GUI.SIZE_X / 2 - 20, y=GUI.SIZE_Y - 20, anchor="s")
+        self.player_labels[GUI.YOUR_PLAYER].place(x=GUI.SIZE_X / 2 - 20, y=GUI.SIZE_Y - 20, anchor="s")
         self.player_labels[3].place(x=20, y=350)
         self.player_labels[4].place(x=350, y=20)
 
         self.player_labels[GUI.YOUR_PLAYER].configure(text="YOU")
+
+        # Create labels for players bets
+        self.players_bets_labels = [Label(self.window, text='0', bg='green') for _ in range(5)]
+        self.players_bets_labels[0].place(x=GUI.SIZE_X - 350 + 10, y=20, anchor="w")
+        self.players_bets_labels[1].place(x=GUI.SIZE_X - 20 - 55, y=350, anchor="e")
+        self.players_bets_labels[GUI.YOUR_PLAYER].place(x=GUI.SIZE_X / 2 - 20 + 25, y=GUI.SIZE_Y - 20, anchor="sw")
+        self.players_bets_labels[3].place(x=20 + 55, y=350, anchor="nw")
+        self.players_bets_labels[4].place(x=350 + 55, y=20, anchor="nw")
 
         # Create money label
         self.your_money_label = Label(self.window, text="Your money:")
@@ -122,6 +131,11 @@ class GUI:
     def clear_table(self):
         for card in self.table_cards_labels:
             card['image'] = ''
+
+    def show_message(self, text: str, color: str):
+        message_label = Label(self.window, text=text, fg=color)
+        message_label.pack(anchor='nw')
+        message_label.after(GUI.MESSAGE_SECONDS * 1000, lambda: message_label.destroy())
 
 
 def hide_widgets(*buttons: tkinter.Widget):
