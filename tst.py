@@ -1,12 +1,14 @@
 cards_val = [2, 3, 4, 5, 6, 6, 6]
 
+from cards import Queue, Player, PlayersQueue
 
-def asd():
-    if 4 == 5:
-        return "yes"
+players = [Player(f'player {i + 1}') for i in range(5)]
 
+queue = PlayersQueue(players)
 
-s1 = {14, 12, 7, 5, 4, 3, 2}
-s2 = {14, 5, 4, 3, 2}
+print(queue)
 
-print(asd())
+print('dealer:', queue.get_dealer())
+print('small blind:', queue.get_s_blind())
+print('big blind:', queue.get_b_blind())
+

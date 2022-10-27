@@ -121,7 +121,7 @@ class Player(Table):
         self.money = START_MONEY
 
     @staticmethod
-    def combination(all_cards: list[Card]):
+    def _combination(all_cards: list[Card]):
 
         def _set_cards_val(cards: list[Card]):
             res = []
@@ -259,39 +259,84 @@ class Player(Table):
 
     def hand_rank(self, __table):
         cards_pool = self.hand + __table.hand
-        self.rank = self.combination(cards_pool)
+        self.rank = self._combination(cards_pool)
+
+    def __repr__(self):
+        return self.name
 
 
 # TODO: class Queue for players
+class Queue:
+    def __init__(self, items: list):
+        self.list = items
+
+    def r_push(self, item):
+        self.list.append(item)
+
+    def l_push(self, item):
+        self.list.insert(0, item)
+
+    def r_pop(self):
+        return self.list.pop()
+
+    def l_pop(self):
+        return self.list.pop(0)
+
+    def r_move(self):
+        self.list = [self.list.pop()] + self.list
+
+    def l_move(self):
+        self.list += [self.list.pop(0)]
+
+    def __str__(self):
+        return str(self.list)
+
+    def __repr__(self):
+        return self.list
 
 
-player = Player("Maxim")
-table = Table()
+class PlayersQueue(Queue):
+    def __init__(self, items: list):
+        super().__init__(items)
 
-k = 0
-flag = True
-while flag is True:
-    deck = Deck()
-    deck.shuffle()
+    def get_dealer(self) -> Player:
+        return self.list[-3]
 
-    table.clear()
-    player.clear()
+    def get_s_blind(self) -> Player:
+        return self.list[-2]
 
-    table.draw(deck, 5)
-    player.draw(deck, 2)
-
-    player.hand_rank(table)
-
-    if player.rank[0] == Rank.PAIR:
-        flag = False
-
-    k += 1
+    def get_b_blind(self) -> Player:
+        return self.list[-1]
 
 
-# table.hand = [Card(3, Suits.S), Card(2, Suits.S), Card(5, Suits.C), Card(5, Suits.D), Card(14, Suits.C)]
-# player.hand = [Card(4, Suits.S), Card(5, Suits.H)]
-# player.hand_rank(table)
-print(k)
-print(table.hand)
-print(player.hand)
-print(player.rank)
+if __name__ == '__main__':
+    player = Player("Maxim")
+    table = Table()
+
+    k = 0
+    flag = True
+    while flag is True:
+        deck = Deck()
+        deck.shuffle()
+
+        table.clear()
+        player.clear()
+
+        table.draw(deck, 5)
+        player.draw(deck, 2)
+
+        player.hand_rank(table)
+
+        if player.rank[0] == Rank.PAIR:
+            flag = False
+
+        k += 1
+
+
+    # table.hand = [Card(3, Suits.S), Card(2, Suits.S), Card(5, Suits.C), Card(5, Suits.D), Card(14, Suits.C)]
+    # player.hand = [Card(4, Suits.S), Card(5, Suits.H)]
+    # player.hand_rank(table)
+    print(k)
+    print(table.hand)
+    print(player.hand)
+    print(player.rank)
