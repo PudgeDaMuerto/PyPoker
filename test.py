@@ -93,6 +93,89 @@ def _test_best_flush():
     _test_best_flush_2()
 
 
+def _test_kicker():
+    from cards import Player, Table, Card, Suits, _kicker
+    test1 = Player("Test1")
+    table = Table()
+
+    def _test_kicker_1():
+        """
+        Case when player has two cards, that don`t belong to combination
+        """
+        table.hand = [Card(5, Suits.D), Card(5, Suits.C), Card(12, Suits.H), Card(7, Suits.S), Card(12, Suits.C)]
+        test1.hand = [Card(14, Suits.C), Card(11, Suits.S)]
+        test1.hand_rank(table)
+
+        assert _kicker(test1) == Card(14, Suits.C)
+
+    def _test_kicker_2():
+        """
+        Case when player has one card, that don`t belong to combination
+        """
+        table.hand = [Card(5, Suits.D), Card(10, Suits.C), Card(12, Suits.H), Card(7, Suits.S), Card(12, Suits.C)]
+        test1.hand = [Card(13, Suits.C), Card(10, Suits.S)]
+        test1.hand_rank(table)
+
+        assert _kicker(test1) == Card(13, Suits.C)
+
+    _test_kicker_1()
+    _test_kicker_2()
+
+
+def _test_is_shared_kicker():
+    from cards import Player, Table, Card, Suits, _is_shared_kicker
+    test1 = Player("Test1")
+    test2 = Player("Test2")
+    table = Table()
+
+    def _test_is_shared_kicker_1():
+        """
+        Case when table have two free cards
+        """
+        table.hand = [Card(5, Suits.D), Card(7, Suits.C), Card(12, Suits.H), Card(13, Suits.S), Card(12, Suits.C)]
+        test1.hand = [Card(7, Suits.S), Card(3, Suits.D)]
+        test2.hand = [Card(7, Suits.S), Card(3, Suits.S)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _is_shared_kicker(table, test1, test2) == Card(13, Suits.S)
+
+    _test_is_shared_kicker_1()
+
+
+def _test_pocket_card():
+    from cards import Player, Table, Card, Suits, _pocket_card
+    test1 = Player("Test1")
+    test2 = Player("Test2")
+    table = Table()
+
+    def _test_pocket_card_1():
+        """
+        Case when players have same kickers
+        """
+        table.hand = [Card(7, Suits.H), Card(5, Suits.S), Card(2, Suits.H), Card(9, Suits.H), Card(7, Suits.C)]
+        test1.hand = [Card(13, Suits.S), Card(12, Suits.D)]
+        test2.hand = [Card(11, Suits.C), Card(13, Suits.H)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _pocket_card(test1) == Card(12, Suits.D)
+        assert _pocket_card(test2) ==  Card(11, Suits.C)
+
+    _test_pocket_card_1()
+
+
+# TODO: test _winner_when_combs_same
+# Cases:
+# when one have max kicker
+# when several have max kicker and all have pocket cards
+# when several have max kicker and some haven`t pocket cards
+# when several have max kicker and no one have pocket card
+
+
 if __name__ == '__main__':
     _test_best_straight()
     _test_best_flush()
+    _test_kicker()
+    _test_is_shared_kicker()
+    _test_pocket_card()
