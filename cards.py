@@ -374,7 +374,92 @@ def _best_flush(*players: Player) -> list[Player]:
     return p_with_best_flush
 
 
-def rank_comparison(*players: Player):
+def _kicker(player: Player):
+    free_cards = []
+    for card in player.hand:
+        if card not in player.comb:
+            free_cards.append(card)
+    return max(free_cards)
+
+
+def _pocket_card(player: Player):
+    p_kicker = _kicker(player)
+    for card in player.hand:
+        if card not in player.comb and card != p_kicker:
+            return card
+
+
+def _is_shared_kicker(table: Table, *players: Player):
+    free_table_cards = []
+    for card in table.hand:
+        if card not in players[0].comb:
+            free_table_cards.append(card)
+
+    kickers = [_kicker(p) for p in players]
+    table_mb_kickers = []
+    for table_card in free_table_cards:
+        i = 0
+        for kicker in kickers:
+            if table_card > kicker:
+                i += 1
+        if i == len(kickers):
+            table_mb_kickers.append(table_card)
+
+    if table_mb_kickers:
+        return max(table_mb_kickers)
+
+    return False
+
+
+def _winner_when_combs_same(*players):
+    kickers = [_kicker(p) for p in players]
+    max_kicker = max(kickers)
+
+    p_with_max_kicker = []
+    for p in players:
+        if _kicker(p) == max_kicker:
+            p_with_max_kicker.append(p)
+
+    if len(p_with_max_kicker) == 1:
+        return p_with_max_kicker[0]
+
+    if None in [_pocket_card(p) for p in p_with_max_kicker]:
+        return p_with_max_kicker
+
+    max_pocket = 1
+    for p in p_with_max_kicker:
+        if (card := _pocket_card(p)) and card > max_pocket:
+            max_pocket = card
+
+    p_with_max_pocket = []
+    for p in p_with_max_kicker:
+        if (card := _pocket_card(p)) and card == max_pocket:
+            p_with_max_pocket.append(p)
+
+    return p_with_max_pocket
+
+
+def _best_four_of_a_kind(table, *players):
+    max_rank = 1
+    for p in players:
+        if p.comb[1][0] > max_rank:
+            max_rank = p.comb[1][0]
+
+    p_with_best = []
+    for p in players:
+        if p.comb[1][0] == max_rank:
+            p_with_best.append(p)
+
+    if len(p_with_best) == 1:
+        return p_with_best[0]
+
+    if _is_shared_kicker(table, *players):
+        return p_with_best
+
+    return _winner_when_combs_same(p_with_best)
+
+
+def rank_comparison(table: Table, *players: Player):
     p_with_best_hands = _best_hands(*players)
     ps_rank = p_with_best_hands[0].rank
     if len(p_with_best_hands) == 1:
@@ -391,7 +476,9 @@ def rank_comparison(*players: Player):
                 return _best_full_house(*p_with_best_hands)
             case Rank.FLUSH:
                 return _best_flush(*p_with_best_hands)
-        # TODO: function to detect kicker and cases for other combinations
+            case Rank.FOUR_OF_A_KIND:
+                return _best_four_of_a_kind(table, *p_with_best_hands)
+        # TODO: cases for other combinations
 
 
 if __name__ == '__main__':
@@ -412,7 +499,7 @@ if __name__ == '__main__':
 
         player.hand_rank(table)
 
-        if player.rank == Rank.FLUSH:
+        if player.rank == Rank.FOUR_OF_A_KIND:
             flag = False
 
         k += 1
@@ -425,4 +512,4 @@ if __name__ == '__main__':
     print(player.hand)
     print(player.rank)
     print(player.comb)
-    print(max(player.comb))
+    print('kicker:', _kicker(player))
