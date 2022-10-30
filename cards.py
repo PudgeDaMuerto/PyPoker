@@ -117,7 +117,8 @@ class Player(Table):
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.rank = (None, None)
+        self.rank = None
+        self.comb = None
         self.money = START_MONEY
 
     @staticmethod
@@ -240,32 +241,31 @@ class Player(Table):
         if r := _is_royal_flush():
             return Rank.ROYAL_FLUSH, r
         if r := _is_straight_flush():
-            return Rank.STRAIGHT_FLUSH, r
+            return Rank.STRAIGHT_FLUSH, r[0]
         if r := _is_four_of_a_kind():
             return Rank.FOUR_OF_A_KIND, r
         if r := _is_full_house():
-            return Rank.FULL_HOUSE, r[0], r[1]
+            return Rank.FULL_HOUSE, (r[0], r[1])
         if r := flush:
             return Rank.FLUSH, r
         if r := straight:
-            return Rank.STRAIGHT, r
+            return Rank.STRAIGHT, r[0]
         if r := _is_three_of_a_kind():
             return Rank.THREE_OF_A_KIND, r
         if r := _is_two_pair():
-            return Rank.TWO_PAIR, r[0], r[1]
+            return Rank.TWO_PAIR, (r[0], r[1])
         if r := _is_pair():
             return Rank.PAIR, r
         return Rank.HIGH_CARD, max(all_cards)
 
     def hand_rank(self, __table):
         cards_pool = self.hand + __table.hand
-        self.rank = self._combination(cards_pool)
+        self.rank, self.comb = self._combination(cards_pool)
 
     def __repr__(self):
         return self.name
 
 
-# TODO: class Queue for players
 class Queue:
     def __init__(self, items: list):
         self.list = items
@@ -309,6 +309,91 @@ class PlayersQueue(Queue):
         return self.list[-1]
 
 
+def _best_hands(*players: Player) -> list[Player]:
+    """
+    Return players with min rank
+    """
+    min_rank = 11
+    players_with_min_rank = []
+    for p in players:
+        if p.rank.value < min_rank:
+            min_rank = p.rank.value
+
+    for p in players:
+        if p.rank.value == min_rank:
+            players_with_min_rank.append(p)
+
+    return players_with_min_rank
+
+
+def is_lower_straight(player: Player) -> bool:
+    if (player.rank == Rank.STRAIGHT or player.rank == Rank.STRAIGHT_FLUSH) \
+            and player.comb[0] == 14 \
+            and player.comb[1] == 5:
+        return True
+    else:
+        return False
+
+
+def _best_straight(*players: Player) -> list[Player]:
+    high_rank = 1
+    p_with_better_straight = []
+    for p in players:
+        card = 1 if is_lower_straight(p) else 0
+        if p.comb[card] > high_rank:
+            high_rank = p.comb[card]
+
+    for p in players:
+        card = 1 if is_lower_straight(p) else 0
+        if p.comb[card] == high_rank:
+            p_with_better_straight.append(p)
+
+    return p_with_better_straight
+
+
+def _best_full_house(*players: Player) -> list[Player]:
+    max_three = 1
+    p_with_best_full_house = []
+    for p in players:
+        if p.comb[0] > max_three:
+            max_three = p.comb[0]
+    for p in players:
+        if p.comb[0] == max_three:
+            p_with_best_full_house.append(p)
+
+    return p_with_best_full_house
+
+
+def _best_flush(*players: Player) -> list[Player]:
+    players_max_cards = [p.comb[0] for p in players]
+    max_card = max(players_max_cards)
+    p_with_best_flush = []
+    for p in players:
+        if p.comb[0].val == max_card:
+            p_with_best_flush.append(p)
+    return p_with_best_flush
+
+
+def rank_comparison(*players: Player):
+    p_with_best_hands = _best_hands(*players)
+    ps_rank = p_with_best_hands[0].rank
+    if len(p_with_best_hands) == 1:
+        return p_with_best_hands[0]
+    else:
+        match ps_rank:
+            case Rank.ROYAL_FLUSH:
+                return p_with_best_hands
+            case Rank.STRAIGHT_FLUSH:
+                return _best_straight(*p_with_best_hands)
+            case Rank.STRAIGHT:
+                return _best_straight(*p_with_best_hands)
+            case Rank.FULL_HOUSE:
+                return _best_full_house(*p_with_best_hands)
+            case Rank.FLUSH:
+                return _best_flush(*p_with_best_hands)
+        # TODO: function to detect kicker and cases for other combinations
+
+
 if __name__ == '__main__':
     player = Player("Maxim")
     table = Table()
@@ -327,16 +412,17 @@ if __name__ == '__main__':
 
         player.hand_rank(table)
 
-        if player.rank[0] == Rank.PAIR:
+        if player.rank == Rank.FLUSH:
             flag = False
 
         k += 1
 
-
-    # table.hand = [Card(3, Suits.S), Card(2, Suits.S), Card(5, Suits.C), Card(5, Suits.D), Card(14, Suits.C)]
+    # table.hand = [Card(3, Suits.S), Card(2, Suits.S), Card(6, Suits.C), Card(5, Suits.D), Card(14, Suits.C)]
     # player.hand = [Card(4, Suits.S), Card(5, Suits.H)]
     # player.hand_rank(table)
     print(k)
     print(table.hand)
     print(player.hand)
     print(player.rank)
+    print(player.comb)
+    print(max(player.comb))
