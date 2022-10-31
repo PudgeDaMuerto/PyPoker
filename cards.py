@@ -256,7 +256,7 @@ class Player(Table):
             return Rank.TWO_PAIR, (r[0], r[1])
         if r := _is_pair():
             return Rank.PAIR, r
-        return Rank.HIGH_CARD, max(all_cards)
+        return Rank.HIGH_CARD, [max(all_cards)]
 
     def hand_rank(self, __table):
         cards_pool = self.hand + __table.hand
@@ -374,72 +374,73 @@ def _best_flush(*players: Player) -> list[Player]:
     return p_with_best_flush
 
 
-def _kicker(player: Player):
+def _kicker(player: Player) -> Card:
     free_cards = []
     for card in player.hand:
         if card not in player.comb:
             free_cards.append(card)
-    return max(free_cards)
+    if free_cards:
+        return max(free_cards)
 
 
-def _pocket_card(player: Player):
+def _pocket_card(player: Player) -> Card:
     p_kicker = _kicker(player)
     for card in player.hand:
         if card not in player.comb and card != p_kicker:
             return card
 
 
-def _is_shared_kicker(table: Table, *players: Player):
+def _is_shared_kicker(table: Table, *players: Player) -> Card | bool:
     free_table_cards = []
     for card in table.hand:
         if card not in players[0].comb:
             free_table_cards.append(card)
 
     kickers = [_kicker(p) for p in players]
-    table_mb_kickers = []
-    for table_card in free_table_cards:
-        i = 0
-        for kicker in kickers:
-            if table_card > kicker:
-                i += 1
-        if i == len(kickers):
-            table_mb_kickers.append(table_card)
+    for kicker in kickers:
+        for table_card in free_table_cards:
+            if table_card < kicker:
+                return False
 
-    if table_mb_kickers:
-        return max(table_mb_kickers)
-
-    return False
+    return max(free_table_cards)
 
 
-def _winner_when_combs_same(*players):
+def _winner_when_combs_same(table: Table, *players: Player) -> list[Player]:
     kickers = [_kicker(p) for p in players]
-    max_kicker = max(kickers)
+
+    if None in kickers:
+        return list(players)
+
+    if _is_shared_kicker(table, *players):
+        return list(players)
+
+    max_kicker = max(kickers).val
 
     p_with_max_kicker = []
     for p in players:
-        if _kicker(p) == max_kicker:
+        if _kicker(p).val == max_kicker:
             p_with_max_kicker.append(p)
 
     if len(p_with_max_kicker) == 1:
-        return p_with_max_kicker[0]
+        return p_with_max_kicker
 
     if None in [_pocket_card(p) for p in p_with_max_kicker]:
         return p_with_max_kicker
 
     max_pocket = 1
     for p in p_with_max_kicker:
-        if (card := _pocket_card(p)) and card > max_pocket:
+        if (card := _pocket_card(p).val) and card > max_pocket:
             max_pocket = card
 
     p_with_max_pocket = []
     for p in p_with_max_kicker:
-        if (card := _pocket_card(p)) and card == max_pocket:
+        if (card := _pocket_card(p).val) and card == max_pocket:
             p_with_max_pocket.append(p)
 
     return p_with_max_pocket
 
 
-def _best_four_of_a_kind(table, *players):
+def _best_four_of_a_kind(table: Table, *players: Player) -> list[Player]:
     max_rank = 1
     for p in players:
         if p.comb[1][0] > max_rank:
@@ -451,12 +452,67 @@ def _best_four_of_a_kind(table, *players):
             p_with_best.append(p)
 
     if len(p_with_best) == 1:
-        return p_with_best[0]
+        return list(p_with_best)
 
-    if _is_shared_kicker(table, *players):
-        return p_with_best
+    return _winner_when_combs_same(table, *p_with_best)
 
-    return _winner_when_combs_same(p_with_best)
+
+def _best_three_of_a_kind(table: Table, *players: Player) -> list[Player]:
+    max_rank = 1
+    for p in players:
+        if p.comb[0] > max_rank:
+            max_rank = p.comb[0]
+
+    p_with_best = []
+    for p in players:
+        if p.comb[0] == max_rank:
+            p_with_best.append(p)
+
+    if len(p_with_best) == 1:
+        return list(p_with_best)
+
+    return _winner_when_combs_same(table, *p_with_best)
+
+
+def _best_two_pair(table: Table, *players: Player) -> list[Player]:
+    max_rank = 1
+
+    for p in players:
+        for card in p.comb:
+            if card > max_rank:
+                max_rank = card
+
+    p_with_best = []
+    for p in players:
+        for card in p.comb:
+            if card == max_rank:
+                p_with_best.append(p)
+
+    if len(p_with_best) == 1:
+        return list(p_with_best)
+
+    return _winner_when_combs_same(table, *p_with_best)
+
+
+def _best_pair(table: Table, *players: Player) -> list[Player]:
+    return _best_three_of_a_kind(table, *players)
+
+
+def _best_high_card(table: Table, *players: Player) -> list[Player]:
+    max_rank = 1
+    for p in players:
+        if p.comb[0].val > max_rank:
+            max_rank = p.comb[0].val
+
+    p_with_best = []
+    for p in players:
+        if p.comb[0].val == max_rank:
+            p_with_best.append(p)
+
+    if len(p_with_best) == 1:
+        return list(p_with_best)
+
+    return _winner_when_combs_same(table, *p_with_best)
 
 
 def rank_comparison(table: Table, *players: Player):
@@ -478,7 +534,14 @@ def rank_comparison(table: Table, *players: Player):
                 return _best_flush(*p_with_best_hands)
             case Rank.FOUR_OF_A_KIND:
                 return _best_four_of_a_kind(table, *p_with_best_hands)
-        # TODO: cases for other combinations
+            case Rank.THREE_OF_A_KIND:
+                return _best_three_of_a_kind(table, *p_with_best_hands)
+            case Rank.TWO_PAIR:
+                return _best_two_pair(table, *p_with_best_hands)
+            case Rank.PAIR:
+                return _best_pair(table, *p_with_best_hands)
+            case Rank.HIGH_CARD:
+                return _best_high_card(table, *p_with_best_hands)
 
 
 if __name__ == '__main__':
@@ -499,7 +562,7 @@ if __name__ == '__main__':
 
         player.hand_rank(table)
 
-        if player.rank == Rank.FOUR_OF_A_KIND:
+        if player.rank == Rank.PAIR:
             flag = False
 
         k += 1
@@ -513,3 +576,4 @@ if __name__ == '__main__':
     print(player.rank)
     print(player.comb)
     print('kicker:', _kicker(player))
+    print('pocket:', _pocket_card(player))
