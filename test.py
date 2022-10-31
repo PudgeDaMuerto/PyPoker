@@ -165,12 +165,51 @@ def _test_pocket_card():
     _test_pocket_card_1()
 
 
-# TODO: test _winner_when_combs_same
-# Cases:
-# when one have max kicker
-# when several have max kicker and all have pocket cards
-# when several have max kicker and some haven`t pocket cards
-# when several have max kicker and no one have pocket card
+def _test_winner_when_combs_same():
+    from cards import Player, Table, Card, Suits, _winner_when_combs_same
+    test1 = Player("Test1")
+    test2 = Player("Test2")
+    table = Table()
+
+    def _test_winner_when_combs_same_1():
+        """
+        Case when players have same kickers but diff pocket cards
+        """
+        table.hand = [Card(7, Suits.H), Card(5, Suits.S), Card(2, Suits.H), Card(9, Suits.H), Card(7, Suits.C)]
+        test1.hand = [Card(13, Suits.S), Card(12, Suits.D)]
+        test2.hand = [Card(11, Suits.C), Card(13, Suits.H)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _winner_when_combs_same(table, test1, test2) == [test1]
+
+    def _test_winner_when_combs_same_2():
+        """
+        Case when players have same kickers
+        """
+        table.hand = [Card(7, Suits.H), Card(5, Suits.S), Card(2, Suits.H), Card(9, Suits.H), Card(7, Suits.C)]
+        test1.hand = [Card(7, Suits.S), Card(12, Suits.D)]
+        test2.hand = [Card(7, Suits.C), Card(13, Suits.H)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _winner_when_combs_same(table, test1, test2) == [test2]
+
+    def _test_winner_when_combs_same_3():
+        """
+        Case when players have shared kicker
+        """
+        table.hand = [Card(3, Suits.H), Card(5, Suits.S), Card(6, Suits.H), Card(9, Suits.H), Card(8, Suits.C)]
+        test1.hand = [Card(3, Suits.S), Card(4, Suits.D)]
+        test2.hand = [Card(3, Suits.C), Card(4, Suits.H)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _winner_when_combs_same(table, test1, test2) == [test1, test2]
+
+    _test_winner_when_combs_same_1()
+    _test_winner_when_combs_same_2()
+    _test_winner_when_combs_same_3()
 
 
 if __name__ == '__main__':
