@@ -255,7 +255,6 @@ def _test_best_pair():
     def _test_best_pair_1():
         """
         Case when test1 have better pair
-        :return:
         """
         table.hand = [Card(2, Suits.H), Card(4, Suits.H), Card(11, Suits.C), Card(9, Suits.C), Card(10, Suits.S)]
         test1.hand = [Card(3, Suits.D), Card(10, Suits.H)]
@@ -328,7 +327,6 @@ def _test_best_high_card():
     def _test_best_high_card_2():
         """
         Case when test2 have better kicker
-        :return:
         """
         table.hand = [Card(2, Suits.H), Card(4, Suits.H), Card(11, Suits.C), Card(9, Suits.C), Card(10, Suits.S)]
         test1.hand = [Card(12, Suits.D), Card(3, Suits.H)]
