@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import *
+
 from cards_imgs import create_imgs
 
 
@@ -12,8 +13,8 @@ class GUI:
     YOUR_PLAYER = 2
     MESSAGE_SECONDS = 3
 
-    def __init__(self):
-        self.window = Tk()
+    def __init__(self, root):
+        self.window = root
         self.window.title("Poker")
         self.window.geometry(f"{GUI.SIZE_X}x{GUI.SIZE_Y}")
         self.window.resizable(width=False, height=False)
@@ -117,16 +118,24 @@ class GUI:
     def show_all_widgets(self):
         show_widgets(self.btn_bet, self.bet_text, self.btn_call, self.btn_check, self.btn_fold)
 
-    def hide_player_hand(self, player):
-        hide_widgets(*self.players_cards[player])
+    def hide_player_hand(self, player_index):
+        hide_widgets(*self.players_cards[player_index])
 
-    def show_player_hand(self, player):
-        show_widgets(*self.players_cards[player])
+    def show_players_hand(self, player_indexes: list[int]):
+        for p in player_indexes:
+            show_widgets(*self.players_cards[p])
+
+    def set_player_hand(self, player_index, cards: list):
+        for i in range(len(cards)):
+            self.players_cards[player_index][i]['image'] = self.hand_cards[str(cards[i])]
 
     def set_table_cards(self, *cards: str, places: tuple):
         assert len(cards) == len(places), "Not enough places or cards!"
         for place, card in zip(places, cards):
-             self.table_cards_labels[place]['image'] = self.table_cards[card]
+             self.table_cards_labels[place]['image'] = self.table_cards[str(card)]
+
+    def set_table_card(self, card: str, place: int):
+        self.table_cards_labels[place]['image'] = self.table_cards[str(card)]
 
     def clear_table(self):
         for card in self.table_cards_labels:
@@ -137,14 +146,27 @@ class GUI:
         message_label.pack(anchor='nw')
         message_label.after(GUI.MESSAGE_SECONDS * 1000, lambda: message_label.destroy())
 
+    def set_rank(self, rank: str):
+        self.combination_label['text'] = rank
+
+    def delay(self, delay, func):
+        self.window.after(delay * 1000, func)
+
+
+hidden_widgets = []
+
 
 def hide_widgets(*buttons: tkinter.Widget):
     for button in buttons:
-        old_place = button.place_info()
-        button.place_configure(x=int(old_place['x']) + 10000)
+        if button not in hidden_widgets:
+            old_place = button.place_info()
+            button.place_configure(x=int(old_place['x']) + 10000)
+            hidden_widgets.append(button)
 
 
 def show_widgets(*buttons: tkinter.Widget):
     for button in buttons:
-        old_place = button.place_info()
-        button.place_configure(x=int(old_place['x']) - 10000)
+        if button in hidden_widgets:
+            old_place = button.place_info()
+            button.place_configure(x=int(old_place['x']) - 10000)
+            hidden_widgets.remove(button)
