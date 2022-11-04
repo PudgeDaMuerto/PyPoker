@@ -268,7 +268,7 @@ class Player(Table):
 
 class Queue:
     def __init__(self, items: list):
-        self.list = items
+        self.list: list[Player] = items
 
     def r_push(self, item):
         self.list.append(item)
@@ -296,7 +296,7 @@ class Queue:
 
 
 class PlayersQueue(Queue):
-    def __init__(self, items: list):
+    def __init__(self, items: list[Player]):
         super().__init__(items)
 
     def get_dealer(self) -> Player:
@@ -519,7 +519,7 @@ def rank_comparison(table: Table, *players: Player):
     p_with_best_hands = _best_hands(*players)
     ps_rank = p_with_best_hands[0].rank
     if len(p_with_best_hands) == 1:
-        return p_with_best_hands[0]
+        return p_with_best_hands
     else:
         match ps_rank:
             case Rank.ROYAL_FLUSH:
