@@ -340,12 +340,11 @@ def _best_straight(*players: Player) -> list[Player]:
     p_with_better_straight = []
     for p in players:
         card = 1 if is_lower_straight(p) else 0
-        if p.comb[card] > high_rank:
-            high_rank = p.comb[card]
-
+        if p.comb[card].val > high_rank:
+            high_rank = p.comb[card].val
     for p in players:
         card = 1 if is_lower_straight(p) else 0
-        if p.comb[card] == high_rank:
+        if p.comb[card].val == high_rank:
             p_with_better_straight.append(p)
 
     return p_with_better_straight
