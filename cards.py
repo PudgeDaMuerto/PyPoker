@@ -474,18 +474,16 @@ def _best_three_of_a_kind(table: Table, *players: Player) -> list[Player]:
 
 
 def _best_two_pair(table: Table, *players: Player) -> list[Player]:
-    max_rank = 1
-
+    cards_1 = []
+    cards_2 = []
     for p in players:
-        for card in p.comb:
-            if card > max_rank:
-                max_rank = card
+        cards_1.append(p.comb[0])
+        cards_2.append(p.comb[1])
 
     p_with_best = []
     for p in players:
-        for card in p.comb:
-            if card == max_rank:
-                p_with_best.append(p)
+        if p.comb[0] == max(cards_1) and p.comb[1] == max(cards_2):
+            p_with_best.append(p)
 
     if len(p_with_best) == 1:
         return list(p_with_best)
