@@ -1,3 +1,4 @@
+import threading
 import tkinter
 from tkinter import *
 
@@ -14,9 +15,9 @@ class GUI:
     MESSAGE_SECONDS = 3
 
     def __init__(self, root):
-        self.window = root
+        self.window: tkinter.Tk = root
         self.window.title("Poker")
-        self.window.geometry(f"{GUI.SIZE_X}x{GUI.SIZE_Y}")
+        self.window.geometry(f"{GUI.SIZE_X}x{GUI.SIZE_Y}+10+10")
         self.window.resizable(width=False, height=False)
         self.window.configure(background="green")
 
@@ -149,8 +150,16 @@ class GUI:
     def set_rank(self, rank: str):
         self.combination_label['text'] = rank
 
-    def delay(self, delay, func):
-        self.window.after(delay * 1000, func)
+    def refresh(self):
+        pos_x = self.window.winfo_x()
+        pos_y = self.window.winfo_y()
+        self.window.update()
+        self.window.geometry(f'+{pos_x}+{pos_y}')
+        self.window.after(1000, self.refresh)
+
+    def start(self, func):
+        self.refresh()
+        threading.Thread(target=func).start()
 
 
 hidden_widgets = []
