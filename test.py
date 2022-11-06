@@ -243,7 +243,20 @@ def _test_best_two_pair():
 
         assert _best_two_pair(table, test1, test2) == [test1]
 
+    def _test_best_two_pair_2():
+        """
+        Case when players have two pairs, but test2 have one better card, which isn`t highest
+        """
+        table.hand = [Card(4, Suits.S), Card(10, Suits.C), Card(5, Suits.S), Card(9, Suits.H), Card(13, Suits.D)]
+        test1.hand = [Card(4, Suits.D), Card(13, Suits.H)]
+        test2.hand = [Card(9, Suits.D), Card(13, Suits.C)]
+        test1.hand_rank(table)
+        test2.hand_rank(table)
+
+        assert _best_two_pair(table, test1, test2) == [test2]
+
     _test_best_two_pair_1()
+    _test_best_two_pair_2()
 
 
 def _test_best_pair():
