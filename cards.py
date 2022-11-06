@@ -159,8 +159,8 @@ class Player(Table):
             cards_set = sorted(_set_cards_val(all_cards), reverse=True)
             for i, j in zip([0, 1, 2], [5, 6, 7]):
                 sorted_cards_val = cards_set[i:j]
-                if r := is_straight_sub(sorted_cards_val):
-                    found_straights.append(r)
+                if _r := is_straight_sub(sorted_cards_val):
+                    found_straights.append(_r)
 
             if lowest_straight <= set(all_cards):
                 five_place = cards_set.index(5)
@@ -175,8 +175,8 @@ class Player(Table):
         flush = _is_flush()
 
         def _is_royal_flush():
-            if r := _is_straight_flush():
-                for i in r:
+            if _r := _is_straight_flush():
+                for i in _r:
                     if i[0] == 14 and i[1] == 13:
                         return i
             return False
@@ -541,38 +541,3 @@ def rank_comparison(table: Table, *players: Player):
                 return _best_pair(table, *p_with_best_hands)
             case Rank.HIGH_CARD:
                 return _best_high_card(table, *p_with_best_hands)
-
-
-if __name__ == '__main__':
-    player = Player("Maxim")
-    table = Table()
-
-    k = 0
-    flag = True
-    while flag is True:
-        deck = Deck()
-        deck.shuffle()
-
-        table.clear()
-        player.clear()
-
-        table.draw(deck, 5)
-        player.draw(deck, 2)
-
-        player.hand_rank(table)
-
-        if player.rank == Rank.PAIR:
-            flag = False
-
-        k += 1
-
-    # table.hand = [Card(3, Suits.S), Card(2, Suits.S), Card(6, Suits.C), Card(5, Suits.D), Card(14, Suits.C)]
-    # player.hand = [Card(4, Suits.S), Card(5, Suits.H)]
-    # player.hand_rank(table)
-    print(k)
-    print(table.hand)
-    print(player.hand)
-    print(player.rank)
-    print(player.comb)
-    print('kicker:', _kicker(player))
-    print('pocket:', _pocket_card(player))
