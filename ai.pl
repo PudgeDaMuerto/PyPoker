@@ -56,7 +56,7 @@ preflop_call(Card1, Card2, Val):- Val < 4 -> (not_low(Card1) ; not_low(Card2)) ;
 flop_raise_1(Rank, X):- high_card(R), Rank<R, random_m(M), bet(M, X).
 flop_raise_2(Rank, X):- pair(R), Rank<R, random_m(M), bet(M, X).
 flop_raise_3(Rank, X):- two_pair(R), Rank<R, random_m(M), bet(M, X).
-flop_raise(Rank, X):- random(1, 4, R), R == 1 -> flop_raise_1(Rank, X) ; R == 2 -> flop_raise_2(Rank, X) ; flop_raise_3(Rank, X).
+flop_raise(Rank, X):- random(1, 4, R), (R == 1 -> flop_raise_1(Rank, X) ; R == 2 -> flop_raise_2(Rank, X) ; flop_raise_3(Rank, X)).
 
 flop_fold(Card1, Card2, Rank):- pair(R), Rank>R, low_rank(Card1), low_rank(Card2), !.
 flop_call(Card1, Card2, Rank):- \+ flop_fold(Card1, Card2, Rank).
