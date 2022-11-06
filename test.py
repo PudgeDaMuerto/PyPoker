@@ -21,8 +21,8 @@ def _test_best_straight():
         Case when players Test2 have same straights
         """
         table.hand = [Card(2, Suits.S), Card(3, Suits.S), Card(4, Suits.C), Card(5, Suits.D), Card(12, Suits.C)]
-        test1.hand = [Card(6, Suits.S), Card(11, Suits.H)]
-        test2.hand = [Card(6, Suits.S), Card(11, Suits.H)]
+        test1.hand = [Card(6, Suits.D), Card(11, Suits.H)]
+        test2.hand = [Card(6, Suits.S), Card(11, Suits.D)]
         test1.hand_rank(table)
         test2.hand_rank(table)
 
