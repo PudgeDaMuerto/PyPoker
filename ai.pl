@@ -2,7 +2,8 @@
 
 :- use_module(library(random)).
 
-blind(25).
+% made blind seted by python script
+% blind(25).
 aggressive_m(2).
 soft_m(1.4).
 random_m(X):- random(1, 3, R), R == 1 -> aggressive_m(X) ; soft_m(X).
