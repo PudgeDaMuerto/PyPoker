@@ -262,6 +262,15 @@ class Player(Table):
         cards_pool = self.hand + __table.hand
         self.rank, self.comb = self._combination(cards_pool)
 
+    def bet(self, value: int):
+        value = int(value)
+        if self.money - value < 0:
+            self.money = 0
+            return self.money
+        else:
+            self.money -= value
+            return value
+
     def __repr__(self):
         return self.name
 
@@ -294,19 +303,22 @@ class Queue:
     def __repr__(self):
         return self.list
 
+    def __getitem__(self, item):
+        return self.list[item]
+
 
 class PlayersQueue(Queue):
     def __init__(self, items: list[Player]):
         super().__init__(items)
 
-    def get_dealer(self) -> Player:
-        return self.list[-3]
+    def get_dealer(self) -> int:
+        return -3
 
-    def get_s_blind(self) -> Player:
-        return self.list[-2]
+    def get_s_blind(self) -> int:
+        return -2
 
-    def get_b_blind(self) -> Player:
-        return self.list[-1]
+    def get_b_blind(self) -> int:
+        return -1
 
 
 def _best_hands(*players: Player) -> list[Player]:
