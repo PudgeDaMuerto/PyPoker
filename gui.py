@@ -1,3 +1,4 @@
+import re
 import threading
 import tkinter
 from tkinter import *
@@ -38,11 +39,11 @@ class GUI:
 
         # Create labels for players bets
         self.players_bets_labels = [Label(self.window, text='0', bg='green') for _ in range(5)]
-        self.players_bets_labels[0].place(x=GUI.SIZE_X - 350 + 10, y=20, anchor="w")
-        self.players_bets_labels[1].place(x=GUI.SIZE_X - 20 - 55, y=350, anchor="e")
-        self.players_bets_labels[GUI.YOUR_PLAYER].place(x=GUI.SIZE_X / 2 - 20 + 25, y=GUI.SIZE_Y - 20, anchor="sw")
-        self.players_bets_labels[3].place(x=20 + 55, y=350, anchor="nw")
-        self.players_bets_labels[4].place(x=350 + 55, y=20, anchor="nw")
+        self.players_bets_labels[0].place(x=GUI.SIZE_X - 375, y=31, anchor="n")
+        self.players_bets_labels[1].place(x=GUI.SIZE_X - 20 - 20, y=371, anchor="e")
+        self.players_bets_labels[GUI.YOUR_PLAYER].place(x=GUI.SIZE_X / 2 - 25, y=GUI.SIZE_Y - 41, anchor="sw")
+        self.players_bets_labels[3].place(x=20 + 15, y=371, anchor="nw")
+        self.players_bets_labels[4].place(x=350 + 15, y=41, anchor="nw")
 
         # Create money label
         self.your_money_label = Label(self.window, text="Your money:")
@@ -66,13 +67,13 @@ class GUI:
         self.btn_fold = Button(text="Fold", width=10, height=2, bg='red')
         self.btn_bet = Button(text="Bet", width=10, height=2, bg='yellow')
 
-        self.btn_fold.place(x=GUI.SIZE_X / 2 - 200, y=GUI.SIZE_Y - 170)
-        self.btn_check.place(x=GUI.SIZE_X / 2 - 110, y=GUI.SIZE_Y - 170)
-        self.btn_call.place(x=GUI.SIZE_X / 2 - 20, y=GUI.SIZE_Y - 170)
-        self.btn_bet.place(x=GUI.SIZE_X / 2 + 70, y=GUI.SIZE_Y - 170)
+        self.btn_fold.place(x=GUI.SIZE_X / 2 - 200, y=GUI.SIZE_Y - 170 - 20)
+        self.btn_check.place(x=GUI.SIZE_X / 2 - 110, y=GUI.SIZE_Y - 170 - 20)
+        self.btn_call.place(x=GUI.SIZE_X / 2 - 20, y=GUI.SIZE_Y - 170 - 20)
+        self.btn_bet.place(x=GUI.SIZE_X / 2 + 70, y=GUI.SIZE_Y - 170 - 20)
 
         self.bet_text = Entry(self.window, width=13)
-        self.bet_text.place(x=GUI.SIZE_X / 2 + 70, y=GUI.SIZE_Y - 125)
+        self.bet_text.place(x=GUI.SIZE_X / 2 + 70, y=GUI.SIZE_Y - 125 - 20)
 
         # Create labels for cards on table and place them
         self.table_cards_labels = [Label(self.window, image=self.table_cards['14 of spades'], bg='green') for _ in range(5)]
@@ -87,24 +88,24 @@ class GUI:
         self.players_cards = list()
         self.hand_cards_labels = [Label(self.window, image=self.hand_cards['2 of spades'], bg='green') for _ in range(10)]
 
-        self.hand_cards_labels[0].place(x=GUI.SIZE_X - 400, y=40, anchor="n")
-        self.hand_cards_labels[1].place(x=GUI.SIZE_X - 345, y=40, anchor="n")
+        self.hand_cards_labels[0].place(x=GUI.SIZE_X - 400, y=40 + 10, anchor="n")
+        self.hand_cards_labels[1].place(x=GUI.SIZE_X - 345, y=40 + 10, anchor="n")
         self.players_cards.append([self.hand_cards_labels[0], self.hand_cards_labels[1]])
 
-        self.hand_cards_labels[2].place(x=GUI.SIZE_X - 20 - 50 - 15, y=350 + 20, anchor="n")
-        self.hand_cards_labels[3].place(x=GUI.SIZE_X - 20 + 5 - 15, y=350 + 20, anchor="n")
+        self.hand_cards_labels[2].place(x=GUI.SIZE_X - 20 - 50 - 15, y=350 + 30, anchor="n")
+        self.hand_cards_labels[3].place(x=GUI.SIZE_X - 20 + 5 - 15, y=350 + 30, anchor="n")
         self.players_cards.append([self.hand_cards_labels[2], self.hand_cards_labels[3]])
 
-        self.hand_cards_labels[4].place(x=GUI.SIZE_X / 2 - 50, y=GUI.SIZE_Y - 20 - 30, anchor="s")
-        self.hand_cards_labels[5].place(x=GUI.SIZE_X / 2 + 5, y=GUI.SIZE_Y - 20 - 30, anchor="s")
+        self.hand_cards_labels[4].place(x=GUI.SIZE_X / 2 - 50, y=GUI.SIZE_Y - 20 - 40, anchor="s")
+        self.hand_cards_labels[5].place(x=GUI.SIZE_X / 2 + 5, y=GUI.SIZE_Y - 20 - 40, anchor="s")
         self.players_cards.append([self.hand_cards_labels[4], self.hand_cards_labels[5]])
 
-        self.hand_cards_labels[6].place(x=20 + 10, y=350 + 30, anchor="n")
-        self.hand_cards_labels[7].place(x=20 + 65, y=350 + 30, anchor="n")
+        self.hand_cards_labels[6].place(x=20 + 10, y=350 + 40, anchor="n")
+        self.hand_cards_labels[7].place(x=20 + 65, y=350 + 40, anchor="n")
         self.players_cards.append([self.hand_cards_labels[6], self.hand_cards_labels[7]])
 
-        self.hand_cards_labels[8].place(x=345, y=20 + 30, anchor="n")
-        self.hand_cards_labels[9].place(x=345 + 55, y=20 + 30, anchor="n")
+        self.hand_cards_labels[8].place(x=345, y=20 + 40, anchor="n")
+        self.hand_cards_labels[9].place(x=345 + 55, y=20 + 40, anchor="n")
         self.players_cards.append([self.hand_cards_labels[8], self.hand_cards_labels[9]])
 
         # self.player_labels[2]['text'] += 'dealer'
@@ -149,6 +150,33 @@ class GUI:
 
     def set_rank(self, rank: str):
         self.combination_label['text'] = rank
+
+    def clear_bet(self, player_index):
+        self.players_bets_labels[player_index].configure(text="0")
+
+    def set_bet(self, player_index, bet: int):
+        curr_bet = int(self.players_bets_labels[player_index]['text'])
+        self.players_bets_labels[player_index].configure(text=str(curr_bet + bet))
+
+    def start_player_turn(self, player_index):
+        self.player_labels[player_index].configure(background="yellow")
+
+    def end_player_turn(self, player_index):
+        self.player_labels[player_index].configure(background="white")
+
+    def clear_bets(self):
+        for i in range(5):
+            self.players_bets_labels[i].configure(text="0")
+
+    def set_bank(self, value: int):
+        self.bank_sum_label.configure(text=str(value))
+
+    def give_role(self, player_index, role: str):
+        self.player_labels[player_index]['text'] += f" ({role})"
+
+    def clear_role(self, player_index):
+        text = str(self.player_labels[player_index]['text'])
+        self.player_labels[player_index]['text'] = re.sub("\\((.*?)\\)", '', text)
 
     def refresh(self):
         pos_x = self.window.winfo_x()
