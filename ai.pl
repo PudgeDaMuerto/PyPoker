@@ -52,7 +52,7 @@ preflop_raise(Card1, Card2, X):- random(1, 3, R), R == 1 -> preflop_raise_1(Card
 
 % Call when some player raise in preflop
 % Val is value is how many times bid was increased
-preflop_call(Card1, Card2, Val):- Val < 4 -> (not_low(Card1) ; not_low(Card2)) ; (not_low(Card1), not_low(Card2)).
+preflop_call_more(Card1, Card2, Val):- Val < 4 -> (not_low(Card1) ; not_low(Card2)) ; (not_low(Card1), not_low(Card2)).
 
 flop_raise_1(Rank, X):- high_card(R), Rank<R, random_m(M), bet(M, X).
 flop_raise_2(Rank, X):- pair(R), Rank<R, random_m(M), bet(M, X).
