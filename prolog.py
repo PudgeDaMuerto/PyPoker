@@ -55,7 +55,7 @@ def preflop_raise(player_cards) -> int | bool:
         return False
 
 
-def preflop_call_more(player_cards, bet):
+def preflop_call_more(player_cards, bet) -> bool:
     blind = list(prolog.query("blind(X)"))[0]['X']
     val = bet/blind
 
@@ -66,48 +66,48 @@ def preflop_call_more(player_cards, bet):
 
 # Wrapping functions for communicates with Prolog
 def flop_raise(rank):
-    __state_raise(rank, State.FLOP)
+    return __state_raise(rank, State.FLOP)
 
 
 def turn_raise(rank):
-    __state_raise(rank, State.TURN)
+    return __state_raise(rank, State.TURN)
 
 
 def river_raise(rank):
-    __state_raise(rank, State.RIVER)
+    return __state_raise(rank, State.RIVER)
 
 
 def flop_fold(player_cards, rank):
-    __state_fold(player_cards, rank, State.FLOP)
+    return __state_fold(player_cards, rank, State.FLOP)
 
 
 def turn_fold(player_cards, rank):
-    __state_fold(player_cards, rank, State.TURN)
+    return __state_fold(player_cards, rank, State.TURN)
 
 
 def river_fold(player_cards, rank):
-    __state_fold(player_cards, rank, State.RIVER)
+    return __state_fold(player_cards, rank, State.RIVER)
 
 
 def flop_call(player_cards, rank):
-    __state_call(player_cards, rank, State.FLOP)
+    return __state_call(player_cards, rank, State.FLOP)
 
 
 def turn_call(player_cards, rank):
-    __state_call(player_cards, rank, State.TURN)
+    return __state_call(player_cards, rank, State.TURN)
 
 
 def river_call(player_cards, rank):
-    __state_call(player_cards, rank, State.RIVER)
+    return __state_call(player_cards, rank, State.RIVER)
 
 
 def flop_call_more(player_cards, rank, bet):
-    __state_call_more(player_cards, rank, bet, State.FLOP)
+    return __state_call_more(player_cards, rank, bet, State.FLOP)
 
 
 def turn_call_more(player_cards, rank, bet):
-    __state_call_more(player_cards, rank, bet, State.TURN)
+    return __state_call_more(player_cards, rank, bet, State.TURN)
 
 
 def river_call_more(player_cards, rank, bet):
-    __state_call_more(player_cards, rank, bet, State.RIVER)
+    return __state_call_more(player_cards, rank, bet, State.RIVER)
