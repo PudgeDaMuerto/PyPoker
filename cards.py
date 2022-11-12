@@ -120,6 +120,9 @@ class Player(Table):
         self.rank = None
         self.comb = None
         self.money = START_MONEY
+        self.curr_bet = 0
+        self.is_fold = False
+        self.is_raise = False
 
     @staticmethod
     def _combination(all_cards: list[Card]):
@@ -265,11 +268,13 @@ class Player(Table):
     def bet(self, value: int):
         value = int(value)
         if self.money - value < 0:
+            self.curr_bet = self.money
             self.money = 0
-            return self.money
+            return self.curr_bet
         else:
             self.money -= value
-            return value
+            self.curr_bet += value
+            return self.curr_bet
 
     def __repr__(self):
         return self.name
@@ -277,7 +282,10 @@ class Player(Table):
 
 class Queue:
     def __init__(self, items: list):
-        self.list: list[Player] = items
+        self.list = items
+
+    def pop(self, index):
+        self.list.pop(index)
 
     def r_push(self, item):
         self.list.append(item)
@@ -297,6 +305,9 @@ class Queue:
     def l_move(self):
         self.list += [self.list.pop(0)]
 
+    def remove(self, item):
+        self.list.remove(item)
+
     def __str__(self):
         return str(self.list)
 
@@ -308,17 +319,17 @@ class Queue:
 
 
 class PlayersQueue(Queue):
-    def __init__(self, items: list[Player]):
+    def __init__(self, items):
         super().__init__(items)
 
     def get_dealer(self) -> int:
-        return -3
+        return self.list[-3]
 
     def get_s_blind(self) -> int:
-        return -2
+        return self.list[-2]
 
     def get_b_blind(self) -> int:
-        return -1
+        return self.list[-1]
 
 
 def _best_hands(*players: Player) -> list[Player]:
@@ -412,8 +423,10 @@ def _is_shared_kicker(table: Table, *players: Player) -> Card | bool:
         for table_card in free_table_cards:
             if table_card < kicker:
                 return False
-
-    return max(free_table_cards)
+    if free_table_cards:
+        return max(free_table_cards)
+    else:
+        return False
 
 
 def _winner_when_combs_same(table: Table, *players: Player) -> list[Player]:
