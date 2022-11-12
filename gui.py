@@ -155,14 +155,21 @@ class GUI:
         self.players_bets_labels[player_index].configure(text="0")
 
     def set_bet(self, player_index, bet: int):
-        curr_bet = int(self.players_bets_labels[player_index]['text'])
-        self.players_bets_labels[player_index].configure(text=str(curr_bet + bet))
+        self.players_bets_labels[player_index].configure(text=str(bet))
 
     def start_player_turn(self, player_index):
         self.player_labels[player_index].configure(background="yellow")
 
     def end_player_turn(self, player_index):
-        self.player_labels[player_index].configure(background="white")
+        if self.player_labels[player_index]['background'] == "yellow":
+            self.player_labels[player_index].configure(background="white")
+
+    def player_fold(self, player_index):
+        self.player_labels[player_index].configure(background="red")
+
+    def reset_players_colors(self):
+        for p in self.player_labels:
+            p.configure(background="white")
 
     def clear_bets(self):
         for i in range(5):
@@ -178,6 +185,9 @@ class GUI:
         text = str(self.player_labels[player_index]['text'])
         self.player_labels[player_index]['text'] = re.sub("\\((.*?)\\)", '', text)
 
+    def set_money(self, value: int):
+        self.money_label.configure(text=str(value))
+
     def refresh(self):
         pos_x = self.window.winfo_x()
         pos_y = self.window.winfo_y()
@@ -187,7 +197,9 @@ class GUI:
 
     def start(self, func):
         self.refresh()
-        threading.Thread(target=func).start()
+        t = threading.Thread(target=func)
+        t.daemon = True
+        t.start()
 
 
 hidden_widgets = []
@@ -207,3 +219,4 @@ def show_widgets(*buttons: tkinter.Widget):
             old_place = button.place_info()
             button.place_configure(x=int(old_place['x']) - 10000)
             hidden_widgets.remove(button)
+
