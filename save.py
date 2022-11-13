@@ -3,7 +3,7 @@ import shelve
 
 class Save:
     def __init__(self):
-        self.file = shelve.open('data')
+        self.file = shelve.open('data/data')
 
     def save_data(self, players: list, players_queue):
         self.file['Players'] = players

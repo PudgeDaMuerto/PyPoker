@@ -1,7 +1,5 @@
 tst.py
 tst2.py
-data.bak
-data.dat
-data.dir
+/data/
 /.idea/
 /__pycache__/

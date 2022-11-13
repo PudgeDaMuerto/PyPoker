@@ -161,7 +161,7 @@ def game():
         for _p in players:
             _p.hand_rank(table)
 
-        gui.set_rank(players[gui.YOUR_PLAYER].rank.name)
+        gui.set_rank(players[gui.YOUR_PLAYER].rank)
 
         _is_raised = False
         _end = False
@@ -185,17 +185,14 @@ def game():
                             _player.bet(_max_bet - _player.curr_bet)
                             gui.set_bet(_p_index, _player.curr_bet)
                             if (_bet := pl.state_raise(_player.rank, state)) and not _is_raised:
-                                gui.show_message(str(_bet), 'red')
                                 _player.bet(_bet)
                                 gui.set_bet(_p_index, _player.curr_bet)
                                 _is_raised = True
                         else:
                             _player.is_fold = True
                             gui.player_fold(_p_index)
-                            gui.show_message(f"{players_queue}", 'black')
                     else:
                         if (_bet := pl.state_raise(_player.rank, state)) and not _is_raised:
-                            gui.show_message(str(_bet), 'red')
                             _player.bet(_bet)
                             gui.set_bet(_p_index, _player.curr_bet)
                             _is_raised = True
@@ -239,7 +236,7 @@ def game():
             _player.hand_rank(table)
 
         if not players[gui.YOUR_PLAYER].is_lose:
-            gui.set_rank(players[gui.YOUR_PLAYER].rank.name)
+            gui.set_rank(players[gui.YOUR_PLAYER].rank)
             gui.show_players_hand([gui.YOUR_PLAYER])
 
         _is_raised = False
@@ -267,15 +264,12 @@ def game():
                         else:
                             _player.is_fold = True
                             gui.player_fold(_p_index)
-                            gui.show_message(f"{players_queue}", 'black')
                     else:
                         if (bet := pl.preflop_raise(_player.hand)) and not _is_raised:
-                            gui.show_message(f"raise: {bet}", 'red')
                             _player.bet(bet)
                             gui.set_bet(_p_index, _player.curr_bet)
                             _is_raised = True
                         else:
-                            gui.show_message(f"max: {_max_bet}, c_bet:{_player.curr_bet}", 'red')
                             _player.bet(_max_bet - _player.curr_bet)
                             gui.set_bet(_p_index, _player.curr_bet)
 
