@@ -2,6 +2,7 @@ import re
 import threading
 import tkinter
 from tkinter import *
+from tkinter import messagebox
 
 from cards_imgs import create_imgs
 
@@ -13,7 +14,7 @@ class GUI:
     BLUE = '#33FFFF'
     GREEN = '#00FF00'
     YOUR_PLAYER = 2
-    MESSAGE_SECONDS = 3
+    MESSAGE_SECONDS = 10
 
     def __init__(self, root):
         self.window: tkinter.Tk = root
@@ -167,9 +168,12 @@ class GUI:
     def player_fold(self, player_index):
         self.player_labels[player_index].configure(background="red")
 
-    def reset_players_colors(self):
-        for p in self.player_labels:
-            p.configure(background="white")
+    def player_lose(self, player_index):
+        self.player_labels[player_index].configure(background="black")
+
+    def reset_players_colors(self, players_indexes):
+        for p in players_indexes:
+            self.player_labels[p].configure(background="white")
 
     def clear_bets(self):
         for i in range(5):
@@ -187,6 +191,10 @@ class GUI:
 
     def set_money(self, value: int):
         self.money_label.configure(text=str(value))
+
+    def game_over(self):
+        messagebox.showerror("Game Over", "You Lose")
+        self.window.destroy()
 
     def refresh(self):
         pos_x = self.window.winfo_x()
@@ -213,10 +221,15 @@ def hide_widgets(*buttons: tkinter.Widget):
             hidden_widgets.append(button)
 
 
-def show_widgets(*buttons: tkinter.Widget):
+def show_widgets(*buttons: tkinter.Widget | tkinter.Button):
     for button in buttons:
+        if type(button) == Button:
+            button.configure(state=NORMAL)
         if button in hidden_widgets:
             old_place = button.place_info()
             button.place_configure(x=int(old_place['x']) - 10000)
             hidden_widgets.remove(button)
 
+
+def disable_button(button: Button):
+    button.configure(state=DISABLED)

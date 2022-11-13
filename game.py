@@ -2,27 +2,87 @@ import time
 from gui import *
 from cards import *
 from tkinter import Tk
+from tkinter import messagebox
+from save import Save
 
 DEALER_INDEX = -3
 S_BLIND_INDEX = -2
 B_BLIND_INDEX = -1
+
 btn_clicked = False
 
+save = Save()
 root = Tk()
 gui = GUI(root)
-gui.clear_table()
-gui.hide_all_widgets()
 
-players = [Player(f"Player {i + 1}") for i in range(5)]
-players_queue = PlayersQueue([0, 1, 2, 3, 4])
+
+def create_players():
+    _players = [Player(f"Player {_i + 1}") for _i in range(5)]
+    _players_queue = PlayersQueue([0, 1, 2, 3, 4])
+
+    return _players, _players_queue
+
+
+if save.get_data():
+    players, players_queue = save.get_data()
+    for p in players:
+        p.rank = None
+        p.comb = None
+        p.curr_bet = 0
+        p.is_fold = False
+        p.is_raise = False
+else:
+    players, players_queue = create_players()
+
+
+gui.clear_table()
+gui.set_money(players[GUI.YOUR_PLAYER].money)
+gui.hide_all_widgets()
+for i in range(5):
+    gui.hide_player_hand(i)
+
+
+def on_closing():
+    if messagebox.askokcancel("Save", "Do you want to save game?"):
+        save.save_data(players, players_queue)
+        root.destroy()
+    else:
+        root.destroy()
+
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
 
 
 def real_players(_players):
-    return list(filter(lambda p: not p.is_fold, _players))
+    return list(filter(lambda _p: not _p.is_fold and not _p.is_lose, _players))
 
 
 def raised_players(_players):
-    return list(filter(lambda p: not p.is_raise, _players))
+    return list(filter(lambda _p: not _p.is_raise, _players))
+
+
+def is_end_of_turn(_players: list[Player]) -> bool:
+    _real_players = real_players(_players)
+    _max_bet = max([_p.curr_bet for _p in _real_players])
+
+    for _p in _real_players:
+        if _p.curr_bet != _max_bet:
+            return False
+
+    return True
+
+
+def calc_bank(_players: list[Player]) -> int:
+    _bank = 0
+    for _p in _players:
+        _bank += _p.curr_bet
+
+    return _bank
+
+
+def clear_bets(_players: list[Player]):
+    for _p in _players:
+        _p.curr_bet = 0
 
 
 # Buttons commands
@@ -79,37 +139,183 @@ def on_bet():
         gui.show_message("Input value of bet beyond the button!", 'red')
 
 
+def on_check():
+    gui.hide_all_widgets()
+    global btn_clicked
+    btn_clicked = True
+
+
 gui.btn_call.configure(command=on_call)
 gui.btn_bet.configure(command=on_bet)
 gui.btn_fold.configure(command=on_fold)
-
-for i in range(5):
-    gui.hide_player_hand(i)
+gui.btn_check.configure(command=on_check)
 
 
-def main():
-    def is_end_of_turn(_players: list[Player]) -> bool:
-        _real_players = real_players(_players)
-        _max_bet = max([_p.curr_bet for _p in _real_players])
+def game():
+    from prolog import Pl, State
+    pl = Pl()
+    blind = 50
+    bank = 0
 
-        for _p in _real_players:
-            if _p.curr_bet != _max_bet:
-                return False
+    def _start_state(state: State, _bank: int):
+        for _p in players:
+            _p.hand_rank(table)
 
-        return True
+        gui.set_rank(players[gui.YOUR_PLAYER].rank.name)
 
-    def calc_bank(_players: list[Player]) -> int:
-        _bank = 0
-        for _p in _players:
-            _bank += _p.curr_bet
+        _is_raised = False
+        _end = False
+        _first_turn = True
+        while not _end:
+            global btn_clicked
+            btn_clicked = False
+            for _p_index in players_queue:
+                _player = players[_p_index]
+                if _player.is_fold or _player.is_lose:
+                    continue
+
+                _max_bet = max([_p.curr_bet for _p in players])
+
+                gui.start_player_turn(_p_index)
+
+                if _p_index != gui.YOUR_PLAYER:
+                    time.sleep(1)
+                    if _max_bet > 0:
+                        if pl.state_call_more(_player.hand, _player.rank, _max_bet, state):
+                            _player.bet(_max_bet - _player.curr_bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+                            if (_bet := pl.state_raise(_player.rank, state)) and not _is_raised:
+                                gui.show_message(str(_bet), 'red')
+                                _player.bet(_bet)
+                                gui.set_bet(_p_index, _player.curr_bet)
+                                _is_raised = True
+                        else:
+                            _player.is_fold = True
+                            gui.player_fold(_p_index)
+                            gui.show_message(f"{players_queue}", 'black')
+                    else:
+                        if (_bet := pl.state_raise(_player.rank, state)) and not _is_raised:
+                            gui.show_message(str(_bet), 'red')
+                            _player.bet(_bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+                            _is_raised = True
+                        else:
+                            _player.bet(_max_bet - _player.curr_bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+
+                elif len(real_players(players)) != 1:
+                    gui.show_all_widgets()
+                    disable_button(gui.btn_call) if _max_bet == 0 else disable_button(gui.btn_check)
+                    while not btn_clicked:
+                        pass
+
+                time.sleep(1)
+                gui.end_player_turn(_p_index)
+                if len(real_players(players)) == 1:
+                    _end = True
+                    break
+
+                _end = is_end_of_turn(players)
+
+                if _end and not _first_turn:
+                    break
+
+            _first_turn = False
+
+        gui.clear_bets()
+        _bank += calc_bank(players)
+        gui.set_bank(_bank)
+        clear_bets(players)
 
         return _bank
 
-    def clear_bets(_players: list[Player]):
-        for _p in _players:
-            _p.curr_bet = 0
+    def _start_preflop(_bank: int):
+        # Give cards for players and set your player rank
+        for _p_index in players_queue:
+            _player = players[_p_index]
 
-    import prolog as pl
+            _player.draw(deck, 2)
+            gui.set_player_hand(_p_index, _player.hand)
+            _player.hand_rank(table)
+
+        if not players[gui.YOUR_PLAYER].is_lose:
+            gui.set_rank(players[gui.YOUR_PLAYER].rank.name)
+            gui.show_players_hand([gui.YOUR_PLAYER])
+
+        _is_raised = False
+        _end = False
+        _first_turn = True
+        # Start cycle for Preflop
+        while not _end:
+            global btn_clicked
+            btn_clicked = False
+            for _p_index in players_queue:
+                _player = players[_p_index]
+                if _player.is_fold or _player.money <= 0:
+                    continue
+
+                _max_bet = max([_p.curr_bet for _p in players])
+
+                gui.start_player_turn(_p_index)
+
+                if _p_index != gui.YOUR_PLAYER:
+                    time.sleep(1)
+                    if _max_bet > blind:
+                        if pl.preflop_call_more(_player.hand, _max_bet):
+                            _player.bet(_max_bet - _player.curr_bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+                        else:
+                            _player.is_fold = True
+                            gui.player_fold(_p_index)
+                            gui.show_message(f"{players_queue}", 'black')
+                    else:
+                        if (bet := pl.preflop_raise(_player.hand)) and not _is_raised:
+                            gui.show_message(f"raise: {bet}", 'red')
+                            _player.bet(bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+                            _is_raised = True
+                        else:
+                            gui.show_message(f"max: {_max_bet}, c_bet:{_player.curr_bet}", 'red')
+                            _player.bet(_max_bet - _player.curr_bet)
+                            gui.set_bet(_p_index, _player.curr_bet)
+
+                elif len(real_players(players)) != 1:
+                    gui.show_all_widgets()
+                    disable_button(gui.btn_check) if _max_bet > 0 else disable_button(gui.btn_call)
+                    while not btn_clicked:
+                        pass
+
+                time.sleep(1)
+                gui.end_player_turn(_p_index)
+
+                if len(real_players(players)) == 1:
+                    _end = True
+                    break
+
+                _end = is_end_of_turn(players)
+                if _end and not _first_turn:
+                    break
+
+            _first_turn = False
+
+        gui.clear_bets()
+        _bank += calc_bank(players)
+        gui.set_bank(_bank)
+        clear_bets(players)
+
+        return _bank
+
+    gui.set_bank(0)
+    gui.clear_table()
+    gui.hide_all_widgets()
+    for i in range(5):
+        gui.hide_player_hand(i)
+        gui.clear_role(i)
+    for p in players:
+        p.clear()
+        p.is_fold = False
+
+    gui.reset_players_colors(players_queue)
 
     gui.give_role(players_queue.get_dealer(), "dealer")
     gui.give_role(players_queue.get_s_blind(), "small blind")
@@ -119,7 +325,6 @@ def main():
     deck = Deck()
     deck.shuffle()
 
-    blind = 50
     # Preflop start
 
     pl.set_blind(blind)
@@ -128,108 +333,58 @@ def main():
     b_blind_player_index = players_queue.get_b_blind()
 
     # First, make blinds
+
     gui.set_bet(s_blind_player_index, players[s_blind_player_index].bet(int(blind / 2)))
     gui.set_bet(b_blind_player_index, players[b_blind_player_index].bet(blind))
 
-    # Give cards for players and set your player rank
-    for p_index in players_queue:
-        player = players[p_index]
+    bank = _start_preflop(bank)
 
-        player.draw(deck, 2)
-        gui.set_player_hand(p_index, player.hand)
-        player.hand_rank(table)
-
-    gui.set_rank(players[gui.YOUR_PLAYER].rank.name)
-    gui.show_players_hand([gui.YOUR_PLAYER])
-
-    is_raised = False
-    end = False
-    # Start cycle for preflop
-    while not end:
-        global btn_clicked
-        btn_clicked = False
-        for p_index in players_queue:
-            print(p_index)
-            gui.show_message(f"{p_index}", color='black')
-            max_bet = max([p.curr_bet for p in players])
-
-            player = players[p_index]
-            if player.is_fold:
-                continue
-
-            gui.start_player_turn(p_index)
-
-            if p_index != gui.YOUR_PLAYER:
-                time.sleep(1)
-                if max_bet > blind:
-                    if pl.preflop_call_more(player.hand, max_bet):
-                        player.bet(max_bet - player.curr_bet)
-                        gui.set_bet(p_index, player.curr_bet)
-                        # gui.end_player_turn(p_index)
-                    else:
-                        # players_queue.remove(p_index)
-                        player.is_fold = True
-                        gui.player_fold(p_index)
-                        print(f"{p_index}: fold")
-                        gui.show_message(f"{players_queue}", 'black')
-                        # ui.end_player_turn(p_index)
-                else:
-                    if bet := pl.preflop_raise(player.hand) and not is_raised:
-                        player.bet(bet)
-                        gui.set_bet(p_index, player.curr_bet)
-                        is_raised = True
-                        # gui.end_player_turn(p_index)
-                    else:
-                        player.bet(max_bet - player.curr_bet)
-                        gui.set_bet(p_index, player.curr_bet)
-                        # gui.end_player_turn(p_index)
-
-            else:
-                gui.show_all_widgets()
-                while not btn_clicked:
-                    pass
-                print("click")
-
-            time.sleep(1)
-            gui.end_player_turn(p_index)
-            end = is_end_of_turn(players)
-            if end:
-                print('end')
-                break
-
-    gui.clear_bets()
-    gui.set_bank(calc_bank(players))
-    clear_bets(players)
-
+    time.sleep(2)
     table.draw(deck, 3)
-    for p in players:
-        p.hand_rank(table)
-
     gui.set_table_cards(*table.hand, places=(0, 1, 2))
+    bank = _start_state(State.FLOP, bank)
 
-    gui.set_rank(players[2].rank.name)
+    time.sleep(2)
+    table.draw(deck, 1)
+    gui.set_table_cards(table.hand[-1], places=(3, ))
+    bank = _start_state(State.TURN, bank)
 
-    time.sleep(3)
+    time.sleep(2)
+    table.draw(deck, 1)
+    gui.set_table_cards(table.hand[-1], places=(4,))
+    bank = _start_state(State.RIVER, bank)
 
+    winners = rank_comparison(table, *real_players(players))
+    gui.show_message(f'WIN - {", ".join([str(_p) for _p in winners])} with {winners[0].rank}', 'black')
 
-    # for i in range(3, 5):
-    #     table.draw(deck, 1)
-    #     gui.set_table_card(table.hand[-1], i)
-    #     gui.set_rank(players[2].rank.name)
-    #     time.sleep(5)
-    #     for p in players_queue.list:
-    #         p.hand_rank(table)
-
-    winners = rank_comparison(table, *players)
-    gui.show_message(f'WIN - {winners} with {winners[0].rank.name}', 'black')
+    money_won = int(bank / len(winners))
 
     winners_indexes = []
-    for i in winners:
-        winners_indexes.append(players.index(i))
+    for winner in winners:
+        winners_indexes.append(players.index(winner))
+        winner.money += money_won
 
+    gui.set_money(players[gui.YOUR_PLAYER].money)
     gui.show_players_hand(winners_indexes)
+
+    players_queue.l_move()
+
+    for p_index in players_queue:
+        if players[p_index].money <= 0:
+            gui.player_lose(p_index)
+            players_queue.remove(p_index)
+            players[p_index].is_lose = True
+            if p_index == GUI.YOUR_PLAYER:
+                save.delete_data()
+                gui.game_over()
+
+    time.sleep(2)
+
+
+def main():
+    while True:
+        game()
 
 
 gui.start(main)
 gui.start_mainloop()
-

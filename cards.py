@@ -17,6 +17,10 @@ class Rank(Enum):
     PAIR = 9
     HIGH_CARD = 10
 
+    def __str__(self):
+        string = str(self.name).replace('_', ' ').capitalize()
+        return string
+
 
 class Suits(Enum):
     H = "hearts"
@@ -123,6 +127,7 @@ class Player(Table):
         self.curr_bet = 0
         self.is_fold = False
         self.is_raise = False
+        self.is_lose = False
 
     @staticmethod
     def _combination(all_cards: list[Card]):
@@ -279,6 +284,9 @@ class Player(Table):
     def __repr__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Queue:
     def __init__(self, items: list):
@@ -312,7 +320,7 @@ class Queue:
         return str(self.list)
 
     def __repr__(self):
-        return self.list
+        return self.list.__repr__()
 
     def __getitem__(self, item):
         return self.list[item]
@@ -418,15 +426,16 @@ def _is_shared_kicker(table: Table, *players: Player) -> Card | bool:
         if card not in players[0].comb:
             free_table_cards.append(card)
 
+    if not free_table_cards:
+        return False
+
     kickers = [_kicker(p) for p in players]
     for kicker in kickers:
         for table_card in free_table_cards:
             if table_card < kicker:
                 return False
-    if free_table_cards:
-        return max(free_table_cards)
-    else:
-        return False
+
+    return max(free_table_cards)
 
 
 def _winner_when_combs_same(table: Table, *players: Player) -> list[Player]:
