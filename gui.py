@@ -25,7 +25,7 @@ class GUI:
 
         # Create images for cards
         self.table_cards = create_imgs(5.5)
-        self.hand_cards = create_imgs(10)
+        self.hand_cards = create_imgs(8)
 
         # Create labels for players and place them
         self.player_labels = [Label(self.window, text=f"Player {i + 1}") for i in range(5)]

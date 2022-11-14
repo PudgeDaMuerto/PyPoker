@@ -45,6 +45,7 @@ for i in range(5):
 def on_closing():
     if messagebox.askokcancel("Save", "Do you want to save game?"):
         save.save_data(players, players_queue)
+        time.sleep(3)
         root.destroy()
     else:
         root.destroy()
@@ -63,9 +64,10 @@ def raised_players(_players):
 
 def is_end_of_turn(_players: list[Player]) -> bool:
     _real_players = real_players(_players)
+    _real_players_with_money = list(filter(lambda _p: _p.money > 0, _real_players))
     _max_bet = max([_p.curr_bet for _p in _real_players])
 
-    for _p in _real_players:
+    for _p in _real_players_with_money:
         if _p.curr_bet != _max_bet:
             return False
 
@@ -248,7 +250,7 @@ def game():
             btn_clicked = False
             for _p_index in players_queue:
                 _player = players[_p_index]
-                if _player.is_fold or _player.money <= 0:
+                if _player.is_fold or _player.is_lose:
                     continue
 
                 _max_bet = max([_p.curr_bet for _p in players])
@@ -311,6 +313,10 @@ def game():
 
     gui.reset_players_colors(players_queue)
 
+    for i in range(5):
+        if players[i].is_lose:
+            gui.player_lose(i)
+
     gui.give_role(players_queue.get_dealer(), "dealer")
     gui.give_role(players_queue.get_s_blind(), "small blind")
     gui.give_role(players_queue.get_b_blind(), "big blind")
@@ -340,7 +346,7 @@ def game():
 
     time.sleep(2)
     table.draw(deck, 1)
-    gui.set_table_cards(table.hand[-1], places=(3, ))
+    gui.set_table_cards(table.hand[-1], places=(3,))
     bank = _start_state(State.TURN, bank)
 
     time.sleep(2)
@@ -359,7 +365,8 @@ def game():
         winner.money += money_won
 
     gui.set_money(players[gui.YOUR_PLAYER].money)
-    gui.show_players_hand(winners_indexes)
+    # gui.show_players_hand(winners_indexes)
+    gui.show_players_hand(players_queue)
 
     players_queue.l_move()
 
@@ -372,7 +379,7 @@ def game():
                 save.delete_data()
                 gui.game_over()
 
-    time.sleep(2)
+    time.sleep(10)
 
 
 def main():
