@@ -304,21 +304,23 @@ def game():
     gui.set_bank(0)
     gui.clear_table()
     gui.hide_all_widgets()
-    for i in range(5):
-        gui.hide_player_hand(i)
-        gui.clear_role(i)
+
+    gui.reset_players_colors(players_queue)
+
     for p in players:
         p.clear()
         p.is_fold = False
 
-    gui.reset_players_colors(players_queue)
-
     for i in range(5):
+        gui.hide_player_hand(i)
+        gui.clear_role(i)
+
         if players[i].is_lose:
             gui.player_lose(i)
 
     gui.give_role(players_queue.get_dealer(), "dealer")
-    gui.give_role(players_queue.get_s_blind(), "small blind")
+    if len(players_queue.list) > 2:
+        gui.give_role(players_queue.get_s_blind(), "small blind")
     gui.give_role(players_queue.get_b_blind(), "big blind")
 
     table = Table()
@@ -333,8 +335,8 @@ def game():
     b_blind_player_index = players_queue.get_b_blind()
 
     # First, make blinds
-
-    gui.set_bet(s_blind_player_index, players[s_blind_player_index].bet(int(blind / 2)))
+    if len(players_queue.list) > 2:
+        gui.set_bet(s_blind_player_index, players[s_blind_player_index].bet(int(blind / 2)))
     gui.set_bet(b_blind_player_index, players[b_blind_player_index].bet(blind))
 
     bank = _start_preflop(bank)
@@ -365,8 +367,7 @@ def game():
         winner.money += money_won
 
     gui.set_money(players[gui.YOUR_PLAYER].money)
-    # gui.show_players_hand(winners_indexes)
-    gui.show_players_hand(players_queue)
+    gui.show_players_hand(winners_indexes)
 
     players_queue.l_move()
 
