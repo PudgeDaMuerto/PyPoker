@@ -18,5 +18,5 @@ class Save:
     def delete_data(self):
         self.file.clear()
 
-    def __del__(self):
+    def close(self):
         self.file.close()

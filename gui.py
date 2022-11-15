@@ -196,6 +196,10 @@ class GUI:
         messagebox.showerror("Game Over", "You Lose")
         self.window.destroy()
 
+    def you_win(self):
+        messagebox.showerror("Game Over", "You Win!")
+        self.window.destroy()
+
     def refresh(self):
         pos_x = self.window.winfo_x()
         pos_y = self.window.winfo_y()

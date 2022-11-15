@@ -45,7 +45,7 @@ for i in range(5):
 def on_closing():
     if messagebox.askokcancel("Save", "Do you want to save game?"):
         save.save_data(players, players_queue)
-        time.sleep(3)
+        save.close()
         root.destroy()
     else:
         root.destroy()
@@ -379,6 +379,10 @@ def game():
             if p_index == GUI.YOUR_PLAYER:
                 save.delete_data()
                 gui.game_over()
+
+    if len(players_queue.list) == 1:
+        save.delete_data()
+        gui.you_win()
 
     time.sleep(10)
 
